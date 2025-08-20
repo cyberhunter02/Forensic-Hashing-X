@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forensic Hashing-X - Cyber Hunter Warrior</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo" class="logo">
+            <div class="header-text">
+                <h1>Forensic Hashing-X</h1>
+                <p>Powerd by: Cyber Hunter Warrior</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <!-- Status Messages -->
+        <div id="flash-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="hashing-grid">
+            <!-- Text Hashing Module -->
+            <div class="card" id="text-card">
+                <h2>&#128196; Text Hashing</h2>
+                <form id="text-form">
+                    <input type="hidden" name="hash_type" value="text">
+                    <textarea name="text_input" rows="5" placeholder="Enter text to be hashed..."></textarea>
+                    <button type="submit">Generate Hashes</button>
+                </form>
+            </div>
+            
+            <!-- File Hashing Module -->
+            <div class="card" id="file-card">
+                <h2>&#128196; File Hashing</h2>
+                <form id="file-form">
+                    <input type="hidden" name="hash_type" value="file">
+                    <input type="file" name="file_input" id="file_input" required>
+                    <label for="file_input" class="file-label">Select File...</label>
+                    <span id="file-name-display">No file selected</span>
+                    <button type="submit">Generate Hashes</button>
+                </form>
+            </div>
+            
+            <!-- Directory Hashing Module -->
+            <div class="card" id="dir-card">
+                <h2>&#128193; Directory Hashing</h2>
+                <form id="dir-form">
+                    <input type="hidden" name="hash_type" value="directory">
+                    <input type="file" name="dir_input" id="dir_input" accept=".zip" required>
+                    <label for="dir_input" class="file-label">Select a ZIP Archive...</label>
+                     <span id="dir-name-display">No archive selected</span>
+                    <button type="submit">Generate Hashes</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Processing Indicator -->
+        <div id="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Processing, please stand by...</p>
+        </div>
+
+        <!-- Results Display Area -->
+        <div id="results-container"></div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Cyber Hunter Warrior | Forensic Hashing-X</p>
+    </footer>
+
+    <!-- Client-Side Scripting is unchanged -->
+    <script>
+        // Update file input display to show the name of the selected file.
+        document.getElementById('file_input').addEventListener('change', event => {
+            const fileName = event.target.files[0] ? event.target.files[0].name : 'No file selected';
+            document.getElementById('file-name-display').textContent = fileName;
+        });
+        
+        document.getElementById('dir_input').addEventListener('change', event => {
+            const dirName = event.target.files[0] ? event.target.files[0].name : 'No archive selected';
+            document.getElementById('dir-name-display').textContent = dirName;
+        });
+
+        // Attach a single submit handler to all forms.
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', handleFormSubmission);
+        });
+
+        async function handleFormSubmission(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const resultsContainer = document.getElementById('results-container');
+            const spinner = document.getElementById('loading-indicator');
+            
+            resultsContainer.innerHTML = '';
+            spinner.style.display = 'flex';
+            displayStatusMessage('Your request is being processed...', 'info');
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+                
+                if (response.ok && result.status === 'success') {
+                    renderResults(result.data);
+                    displayStatusMessage('Hashing operation completed successfully.', 'success');
+                } else {
+                    displayStatusMessage(result.message || 'An unexpected error occurred.', 'error');
+                }
+            } catch (error) {
+                displayStatusMessage('A network error occurred or the server is unavailable.', 'error');
+                console.error('Fetch operation error:', error);
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+        
+        function displayStatusMessage(message, category = 'info') {
+            const flashContainer = document.getElementById('flash-container');
+            flashContainer.innerHTML = `<div class="flash ${category}">${message}</div>`;
+            setTimeout(() => flashContainer.innerHTML = '', 5000);
+        }
+
+        function renderResults(data) {
+            const container = document.getElementById('results-container');
+            let content = '<div class="results-card">';
+            
+            switch (data.type) {
+                case 'text':
+                    content += `<h2>Text Hashing Results</h2>
+                              <p class="pre-text"><strong>Input Text:</strong> ${data.text}</p>
+                              ${buildHashesTable(data.hashes)}`;
+                    break;
+                case 'file':
+                     content += `<h2>File Hashing Results</h2>
+                               ${buildMetadataTable(data.metadata)}
+                               <h3>Hash Values</h3>
+                               ${buildHashesTable(data.hashes)}`;
+                    break;
+                case 'directory':
+                    content += `<h2>Directory Hashing Results</h2>
+                              <h3>Processing Summary</h3>
+                              ${buildMetadataTable(data.summary, true)}
+                              <hr/>`;
+                    data.results.forEach(item => {
+                        content += `<div class="file-item">
+                                    <h4>File: ${item.metadata['File Name']}</h4>
+                                    <details>
+                                        <summary>View Hashes & Metadata</summary>
+                                        ${buildMetadataTable(item.metadata)}
+                                        ${buildHashesTable(item.hashes)}
+                                    </details>
+                                  </div>`;
+                    });
+                    break;
+            }
+
+            content += `${buildReportGeneratorForm()}`;
+            content += '</div>';
+            container.innerHTML = content;
+        }
+        
+        function buildHashesTable(hashes) {
+            let table = '<table><thead><tr><th>Algorithm</th><th>Hash Value</th></tr></thead><tbody>';
+            for (const [algorithm, hashValue] of Object.entries(hashes)) {
+                table += `<tr><td>${algorithm}</td><td class="hash-value">${hashValue}</td></tr>`;
+            }
+            return table + '</tbody></table>';
+        }
+
+        function buildMetadataTable(metadata, isSummary = false) {
+             let table = '<table class="metadata">';
+             if (isSummary) {
+                table += `<tr><td>Total Files Processed</td><td>${metadata['Total Files Processed']}</td></tr>`;
+                const totalSizeMB = (metadata['Total Directory Size'] / 1024 / 1024).toFixed(2);
+                table += `<tr><td>Total Directory Size</td><td>${totalSizeMB} MB</td></tr>`;
+             } else {
+                 for (const [key, value] of Object.entries(metadata)) {
+                    table += `<tr><td>${key}</td><td>${value}</td></tr>`;
+                 }
+             }
+             return table + '</table>';
+        }
+
+        function buildReportGeneratorForm() {
+            return `
+                <div class="report-generator">
+                    <h2>&#128221; Generate Forensic Report</h2>
+                    <form action="/generate_report" method="POST">
+                        <label for="investigator_name">Investigator Name:</label>
+                        <input type="text" id="investigator_name" name="investigator_name" required>
+                        <label for="case_id">Case ID:</label>
+                        <input type="text" id="case_id" name="case_id" required>
+                        <label for="case_description">Case Notes / Description:</label>
+                        <textarea id="case_description" name="case_description" rows="3" required></textarea>
+                        <button type="submit" class="report-btn">Download PDF Report</button>
+                    </form>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

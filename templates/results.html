@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hashing Results - Cyber Hunter Warrior</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+        <h1>Hashing Results</h1>
+        <p>Cyber Hunter Warrior</p>
+    </header>
+    <main class="container">
+        <a href="/" class="back-link">&larr; Start New Session</a>
+
+        <!-- Text Results -->
+        {% if data.type == 'text' %}
+        <div class="results-card">
+            <h2>Text Hashing Results</h2>
+            <p><strong>Original Text:</strong> <pre>{{ data.text }}</pre></p>
+            <table>
+                <thead>
+                    <tr><th>Algorithm</th><th>Hash Value</th></tr>
+                </thead>
+                <tbody>
+                    {% for alg, hash in data.hashes.items() %}
+                    <tr><td>{{ alg }}</td><td>{{ hash }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <!-- File Results -->
+        {% if data.type == 'file' %}
+        <div class="results-card">
+            <h2>File Hashing Results</h2>
+            <h3>File Metadata</h3>
+            <table class="metadata">
+                {% for key, value in data.metadata.items() %}
+                <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+                {% endfor %}
+            </table>
+            <h3>Hashes</h3>
+            <table>
+                 <thead>
+                    <tr><th>Algorithm</th><th>Hash Value</th></tr>
+                </thead>
+                <tbody>
+                    {% for alg, hash in data.hashes.items() %}
+                    <tr><td>{{ alg }}</td><td>{{ hash }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <!-- Directory Results -->
+        {% if data.type == 'directory' %}
+        <div class="results-card">
+            <h2>Directory Hashing Results</h2>
+            <h3>Summary</h3>
+            <table class="metadata">
+                <tr><td>Total Files Processed</td><td>{{ data.summary['Total Files Processed'] }}</td></tr>
+                <tr><td>Total Directory Size</td><td>{{ data.summary['Total Directory Size'] | format_size }}</td></tr>
+            </table>
+            <hr>
+            {% for item in data.results %}
+            <div class="file-item">
+                <h4>File: {{ item.metadata['File Name'] }}</h4>
+                <details>
+                    <summary>Show Hashes & Metadata</summary>
+                     <table class="metadata">
+                        {% for key, value in item.metadata.items() %}
+                        <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+                        {% endfor %}
+                    </table>
+                    <table>
+                        <thead>
+                            <tr><th>Algorithm</th><th>Hash Value</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for alg, hash in item.hashes.items() %}
+                            <tr><td>{{ alg }}</td><td>{{ hash }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </details>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Report Generation -->
+        <div class="report-card">
+            <h2>Generate PDF Report</h2>
+             <form action="/generate_report" method="POST">
+                <label for="investigator_name">Investigator Name:</label>
+                <input type="text" name="investigator_name" id="investigator_name" required>
+                
+                <label for="case_id">Case ID:</label>
+                <input type="text" name="case_id" id="case_id" required>
+                
+                <label for="case_description">Case Description:</label>
+                <textarea name="case_description" id="case_description" rows="3"></textarea>
+                
+                <button type="submit">Download Report</button>
+            </form>
+        </div>
+
+    </main>
+
+     <footer>
+        <p>Cyber Hunter Warrior | Confidential Forensic Tool</p>
+    </footer>
+</body>
+</html>
