@@ -129,7 +129,7 @@ This project is developed and maintained by **Cyber Hunter Warrior**.
 
 | Platform     | Link |
 |--------------|------|
-| 🌐 *Website*    | [cyberhunterwarrior.tech](https://cyberhunterwarrior.tech) |
+| 🌐 *Website*    | [cyberhunterwarrior]([https://cyberhunterwarrior.tech](https://sites.google.com/view/cyberhunterwarrior)) |
 | 📸 *Instagram*  | [@cyberhunterwarrior](https://instagram.com/cyberhunterwarrior) |
 | 💼 *LinkedIn*   | [LinkedIn Profile](https://linkedin.com/in/cyberhunterwarrior) |
 | ✉ *Email*      | [help.cyberhunterwarrior@gmail.com](help.cyberhunterwarrior@gmail.com) |
